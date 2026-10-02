@@ -873,8 +873,10 @@ export default function Chat({
             placeholder="Pregunta aquí"
             autoComplete="off"
             enterKeyHint="send"
-            onFocus={warm}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              warm();
+              setInput(e.target.value);
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault();

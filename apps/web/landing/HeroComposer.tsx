@@ -21,8 +21,10 @@ export default function HeroComposer({ onAsk }: { onAsk: (query: string) => void
         id="question"
         rows={2}
         value={query}
-        onFocus={warm}
-        onChange={(event) => setQuery(event.target.value)}
+        onChange={(event) => {
+          warm();
+          setQuery(event.target.value);
+        }}
         onKeyDown={(event) => {
           if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
             event.preventDefault();

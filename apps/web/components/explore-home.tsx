@@ -125,8 +125,10 @@ export default function ExploreHome({ mode }: { mode: 'preview' | 'live' }) {
               aria-label="¿Qué necesitas hacer?"
               placeholder="Por ejemplo, ¿cómo me doy de alta como autónomo?"
               value={query}
-              onFocus={warm}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                warm();
+                setQuery(event.target.value);
+              }}
               maxLength={1200}
               rows={2}
               onKeyDown={(event) => {
