@@ -25,7 +25,7 @@ import type { Evidence, SearchResult, Stage, VerifiedClaim } from '@reforma-digi
 import { ProjectBrand } from './project-header';
 import { AttachmentPicker } from './attachment-picker';
 import type { PdfContext } from '../lib/attachment';
-import { protectMessages, ProtectionTimeoutError } from '../lib/pii';
+import { protectMessages, ProtectionTimeoutError, warm } from '../lib/pii';
 import type { HiddenRange, ProtectedText } from '../lib/pii-display';
 import { ProtectedQuestion } from './protected-question';
 import { readChatStream } from '../lib/chat-stream';
@@ -717,14 +717,10 @@ export default function Chat({
               {turn.state === 'loading' && (
                 <div className="chat-thinking" role="status">
                   <span aria-hidden="true">
-                    {turn.protecting
-                      ? 'Protegiendo tus datos… La primera vez se descarga el modelo y puede tardar. Puedes detenerlo.'
-                      : 'Pensando…'}
+                    {turn.protecting ? 'Preparando todo…' : 'Pensando…'}
                   </span>
                   <span className="sr-only">
-                    {turn.protecting
-                      ? 'Protegiendo tus datos. La primera vez se descarga el modelo y puede tardar. Puedes detenerlo.'
-                      : stages[turn.stage]}
+                    {turn.protecting ? 'Preparando todo.' : stages[turn.stage]}
                   </span>
                 </div>
               )}
@@ -877,6 +873,7 @@ export default function Chat({
             placeholder="Pregunta aquí"
             autoComplete="off"
             enterKeyHint="send"
+            onFocus={warm}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {

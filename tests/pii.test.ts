@@ -101,6 +101,27 @@ describe('pii protection', () => {
     ]);
   });
 
+  it('warms up once and reuses the loaded model on send', async () => {
+    createGuard.mockResolvedValue(guard(async (text) => ({ text })));
+    const { protectMessages, warm } = await import('../apps/web/lib/pii');
+    warm();
+    warm();
+    await protectMessages(['Soy Ana'], new AbortController().signal);
+    expect(createGuard).toHaveBeenCalledOnce();
+  });
+
+  it('retries on send after a failed warm-up', async () => {
+    createGuard.mockRejectedValueOnce(new Error('model unavailable'));
+    createGuard.mockResolvedValue(guard(async (text) => ({ text })));
+    const { protectMessages, warm } = await import('../apps/web/lib/pii');
+    warm();
+    await vi.waitFor(() => expect(createGuard).toHaveBeenCalledOnce());
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(await protectMessages(['Soy Ana'], new AbortController().signal)).toMatchObject([
+      { text: 'Soy Ana' },
+    ]);
+  });
+
   it('fails closed when Rampart throws while protecting', async () => {
     createGuard.mockResolvedValue(
       guard(async () => {

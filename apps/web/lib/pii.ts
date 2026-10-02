@@ -11,9 +11,17 @@ export class ProtectionTimeoutError extends Error {
     this.name = 'ProtectionTimeoutError';
   }
 }
+const load = () => import('@nationaldesignstudio/rampart').then((m) => m.createGuard());
+// Starts the model download while the question is being written. Failures surface on send.
+export function warm(): void {
+  const current = (guard ??= load());
+  current.catch(() => {
+    if (guard === current) guard = undefined;
+  });
+}
 // Browser only. Rejects if Rampart cannot load or run, so nothing is sent unprotected.
 async function protectMessage(text: string): Promise<ProtectedText> {
-  guard ??= import('@nationaldesignstudio/rampart').then((m) => m.createGuard());
+  guard ??= load();
   const current = guard;
   try {
     const loaded = await current;
