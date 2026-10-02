@@ -11,7 +11,10 @@ describe('pii protection', () => {
     vi.resetModules();
     createGuard.mockReset();
   });
-  afterEach(() => vi.useRealTimers());
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
 
   it('cancels a pending model load immediately and allows retry', async () => {
     let finish!: (value: unknown) => void;
@@ -106,6 +109,16 @@ describe('pii protection', () => {
     const { protectMessages, warm } = await import('../apps/web/lib/pii');
     warm();
     warm();
+    await protectMessages(['Soy Ana'], new AbortController().signal);
+    expect(createGuard).toHaveBeenCalledOnce();
+  });
+
+  it('does not warm up with data saver on, but still protects on send', async () => {
+    vi.stubGlobal('navigator', { connection: { saveData: true } });
+    createGuard.mockResolvedValue(guard(async (text) => ({ text })));
+    const { protectMessages, warm } = await import('../apps/web/lib/pii');
+    warm();
+    expect(createGuard).not.toHaveBeenCalled();
     await protectMessages(['Soy Ana'], new AbortController().signal);
     expect(createGuard).toHaveBeenCalledOnce();
   });

@@ -1,6 +1,12 @@
 import type { ChatGuard } from '@nationaldesignstudio/rampart';
 import { redactQuery } from './redact';
 import { protectionDetails, type ProtectedText } from './pii-display';
+declare global {
+  interface Navigator {
+    // Chromium only; missing from lib.dom.
+    connection?: { saveData?: boolean };
+  }
+}
 let guard: Promise<ChatGuard> | undefined;
 export const PROTECTION_TIMEOUT_MS = 60_000;
 export class ProtectionTimeoutError extends Error {
@@ -13,8 +19,10 @@ export class ProtectionTimeoutError extends Error {
 }
 const load = () => import('@nationaldesignstudio/rampart').then((m) => m.createGuard());
 // Starts the model download while the question is being written. Failures surface on send.
+// With the browser's data saver on, the download waits for the send.
 export function warm(): void {
-  const current = (guard ??= load());
+  if (guard || navigator.connection?.saveData) return;
+  const current = (guard = load());
   current.catch(() => {
     if (guard === current) guard = undefined;
   });
